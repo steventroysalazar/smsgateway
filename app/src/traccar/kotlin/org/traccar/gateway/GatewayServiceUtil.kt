@@ -3,7 +3,7 @@ package org.traccar.gateway
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
-import android.provider.Telephony
+import android.provider.Telephony as SmsTelephony
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
 import android.provider.Telephony
@@ -47,26 +47,26 @@ object GatewayServiceUtil {
         val args = mutableListOf<String>()
 
         if (since != null) {
-            conditions.add("${android.provider.Telephony.Sms.DATE} >= ?")
+            conditions.add("${SmsTelephony.Sms.DATE} >= ?")
             args.add(since.toString())
         }
 
         val selection = conditions.joinToString(" AND ").ifBlank { null }
-        val sortOrder = "${android.provider.Telephony.Sms.DATE} DESC"
+        val sortOrder = "${SmsTelephony.Sms.DATE} DESC"
 
         val results = mutableListOf<GatewayMessage>()
 
         context.contentResolver.query(
-            android.provider.Telephony.Sms.Inbox.CONTENT_URI,
-            arrayOf(android.provider.Telephony.Sms._ID, android.provider.Telephony.Sms.ADDRESS, android.provider.Telephony.Sms.BODY, android.provider.Telephony.Sms.DATE),
+            SmsTelephony.Sms.Inbox.CONTENT_URI,
+            arrayOf(SmsTelephony.Sms._ID, SmsTelephony.Sms.ADDRESS, SmsTelephony.Sms.BODY, SmsTelephony.Sms.DATE),
             selection,
             args.toTypedArray(),
             sortOrder
         )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms._ID)
-            val addressColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.ADDRESS)
-            val bodyColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.BODY)
-            val dateColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.DATE)
+            val idColumn = cursor.getColumnIndexOrThrow(SmsTelephony.Sms._ID)
+            val addressColumn = cursor.getColumnIndexOrThrow(SmsTelephony.Sms.ADDRESS)
+            val bodyColumn = cursor.getColumnIndexOrThrow(SmsTelephony.Sms.BODY)
+            val dateColumn = cursor.getColumnIndexOrThrow(SmsTelephony.Sms.DATE)
 
             while (cursor.moveToNext()) {
                 val address = cursor.getString(addressColumn)
