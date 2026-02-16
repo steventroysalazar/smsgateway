@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SMS Gateway Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; max-width: 800px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    label { display: block; margin-top: .6rem; font-weight: 600; }
+    input, textarea { width: 100%; padding: .5rem; margin-top: .3rem; }
+    button { margin-top: .8rem; padding: .6rem 1rem; cursor: pointer; }
+    #status { margin: 1rem 0; color: #0d47a1; white-space: pre-wrap; }
+    #replies { white-space: pre-wrap; background: #f6f8fa; padding: 1rem; border-radius: 8px; min-height: 160px; }
+  </style>
+</head>
+<body>
+  <h1>SMS Gateway Demo UI</h1>
+
+  <div class="card">
+    <h2>Send Message</h2>
+    <label for="phone">Phone Number</label>
+    <input id="phone" placeholder="+639xxxxxxxxx" />
+
+    <label for="message">Message</label>
+    <textarea id="message" rows="4" placeholder="Type message"></textarea>
+
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <div class="card">
+    <h2>Fetch Replies</h2>
+    <p>This fetches replies from the last phone number you sent to.</p>
+    <button id="fetchBtn">Fetch Replies</button>
+    <div id="status"></div>
+    <div id="replies">No replies loaded yet.</div>
+  </div>
+
+  <script>
+    let lastSentPhone = '';
+    let lastSeenTimestamp = 0;
+
+    const statusEl = document.getElementById('status');
+    const repliesEl = document.getElementById('replies');
+
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      const to = document.getElementById('phone').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!to || !message) {
+        statusEl.textContent = 'Phone and message are required.';
+        return;
+      }
+
+      const res = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, message })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        statusEl.textContent = `Send failed: ${data.error || res.statusText}`;
+        return;
+      }
+
+      lastSentPhone = to;
+      if (!lastSeenTimestamp) {
+        lastSeenTimestamp = Date.now();
+      }
+      statusEl.textContent = `Message sent to ${to}. You can now fetch replies.`;
+    });
+
+    document.getElementById('fetchBtn').addEventListener('click', async () => {
+      if (!lastSentPhone) {
+        statusEl.textContent = 'Send a message first so we know what number to fetch.';
+        return;
+      }
+
+      const params = new URLSearchParams({ phone: lastSentPhone, limit: '100' });
+      if (lastSeenTimestamp) {
+        params.set('since', String(lastSeenTimestamp));
+      }
+
+      const res = await fetch(`/api/messages/replies?${params.toString()}`);
+      const data = await res.json().catch(() => []);
+
+      if (!res.ok) {
+        statusEl.textContent = `Fetch failed: ${data.error || res.statusText}`;
+        return;
+      }
+
+      if (!Array.isArray(data) || data.length === 0) {
+        statusEl.textContent = `No new replies for ${lastSentPhone}.`;
+        return;
+      }
+
+      const maxDate = Math.max(...data.map(m => Number(m.date) || 0));
+      if (maxDate > 0) {
+        lastSeenTimestamp = maxDate + 1;
+      }
+
+      repliesEl.textContent = data
+        .map(m => `[${new Date(m.date).toLocaleString()}] ${m.from}: ${m.message}`)
+        .join('\n');
+
+      statusEl.textContent = `Fetched ${data.length} replies for ${lastSentPhone}.`;
+    });
+  </script>
+</body>
+</html>
