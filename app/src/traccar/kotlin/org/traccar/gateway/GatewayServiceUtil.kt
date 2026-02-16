@@ -9,6 +9,10 @@ import android.telephony.SubscriptionManager
 @Suppress("DEPRECATION")
 object GatewayServiceUtil {
 
+    private const val DEFAULT_LIMIT = 100
+    private const val MAX_LIMIT = 1000
+    private const val MIN_SUFFIX_MATCH_LENGTH = 7
+
     fun isServiceRunning(context: Context): Boolean {
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
@@ -32,4 +36,103 @@ object GatewayServiceUtil {
         smsManager.sendMultipartTextMessage(phone, null, parts, null, null)
     }
 
+    @SuppressLint("MissingPermission")
+    fun getIncomingMessages(context: Context, phone: String?, since: Long?, limit: Int?): List<GatewayMessage> {
+        val safeLimit = (limit ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
+        val phoneQuery = phone?.trim().orEmpty()
+
+        val conditions = mutableListOf<String>()
+        val args = mutableListOf<String>()
+
+        if (since != null) {
+            conditions.add("${android.provider.Telephony.Sms.DATE} >= ?")
+            args.add(since.toString())
+        }
+
+        val selection = conditions.joinToString(" AND ").ifBlank { null }
+        val sortOrder = "${android.provider.Telephony.Sms.DATE} DESC"
+
+        val results = mutableListOf<GatewayMessage>()
+
+        context.contentResolver.query(
+            android.provider.Telephony.Sms.Inbox.CONTENT_URI,
+            arrayOf(android.provider.Telephony.Sms._ID, android.provider.Telephony.Sms.ADDRESS, android.provider.Telephony.Sms.BODY, android.provider.Telephony.Sms.DATE),
+            selection,
+            args.toTypedArray(),
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms._ID)
+            val addressColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.ADDRESS)
+            val bodyColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.BODY)
+            val dateColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.DATE)
+
+            while (cursor.moveToNext()) {
+                val address = cursor.getString(addressColumn)
+                if (!address.matchesPhoneFilter(phoneQuery)) {
+                    continue
+                }
+
+                val id = cursor.getLong(idColumn)
+                val body = cursor.getString(bodyColumn)
+                val date = cursor.getLong(dateColumn)
+
+                results.add(
+                    GatewayMessage(
+                        id = id,
+                        phone = address,
+                        message = body,
+                        date = date
+                    )
+                )
+
+                if (results.size >= safeLimit) {
+                    break
+                }
+            }
+        }
+
+        return results
+    }
+
+    private fun String?.matchesPhoneFilter(phoneQuery: String): Boolean {
+        if (phoneQuery.isBlank()) {
+            return true
+        }
+
+        val address = this?.trim().orEmpty()
+        if (address.isBlank()) {
+            return false
+        }
+
+        val queryHasLetters = phoneQuery.any { it.isLetter() }
+        if (queryHasLetters) {
+            return address.contains(phoneQuery, ignoreCase = true)
+        }
+
+        if (address == phoneQuery) {
+            return true
+        }
+
+
+        val normalizedAddress = address.normalizePhoneDigits()
+        val normalizedQuery = phoneQuery.normalizePhoneDigits()
+
+        if (normalizedAddress.isBlank() || normalizedQuery.isBlank()) {
+            return false
+        }
+
+        if (normalizedAddress == normalizedQuery) {
+            return true
+        }
+
+        val minLength = minOf(normalizedAddress.length, normalizedQuery.length)
+        return minLength >= MIN_SUFFIX_MATCH_LENGTH && (
+            normalizedAddress.endsWith(normalizedQuery) || normalizedQuery.endsWith(normalizedAddress)
+            )
+    }
+
+    private fun String.normalizePhoneDigits(): String {
+        return filter { it.isDigit() || it == '+' }
+            .removePrefix("+")
+    }
 }
