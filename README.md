@@ -28,3 +28,33 @@ The project is based on another open open source project - [Simple SMS Messenger
 
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+## API
+
+### Send SMS
+
+```http
+POST /
+Authorization: <token>
+Content-Type: application/json
+
+{
+  "to": "+10000000000",
+  "message": "Your message",
+  "slot": 0
+}
+```
+
+### Read incoming replies
+
+```http
+GET /messages?phone=+10000000000&since=1700000000000&limit=100
+Authorization: <token>
+```
+
+The `GET /messages` endpoint returns SMS messages received by the phone (inbox) so your web/API client can display replies for numbers you messaged through the gateway. Use optional query parameters:
+
+- `phone`: filter by sender phone number.
+- `since`: unix timestamp in milliseconds; only return newer messages.
+- `limit`: max number of returned messages (default 100, max 1000).
