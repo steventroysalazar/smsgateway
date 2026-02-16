@@ -1,30 +1,37 @@
-# SMS Sender Backend (Spring Boot)
+# SMS Sender Backend (Spring Boot + React Vite)
 
-A minimal backend + UI that works with the Android gateway implementation in this repo.
+This folder now contains:
+- a Spring Boot backend API (`/api/messages/...`) that talks to the Android SMS gateway
+- a React + Vite frontend (`frontend/`) for sending SMS and manually fetching replies
 
-## Features
-- Send SMS through Android gateway (`POST /api/messages/send`)
-- Manually fetch replies for last sent number (`GET /api/messages/replies`)
-- Incremental fetch support using `since` timestamp cursor
-- Simple static frontend served by Spring Boot (`/`)
-
-## Configure
+## 1) Backend setup
 Edit `src/main/resources/application.yml`:
 
 - `gateway.base-url`: Android gateway URL (example `http://192.168.1.55:8082`)
-- `gateway.token`: token shown in Android gateway screen
+- `gateway.token`: token shown in Android gateway app
 - `gateway.default-limit`: max replies per fetch
 
-## Run
+Run backend:
 ```bash
+cd backend
 mvn spring-boot:run
 ```
+Backend runs on `http://localhost:8090`.
 
-Then open:
-- `http://localhost:8090`
+## 2) Frontend setup (React + Vite)
 
-## API
-### Send
+Install and run:
+```bash
+cd backend/frontend
+npm install
+npm run dev
+```
+
+Frontend runs on `http://localhost:5173` and proxies `/api` to `http://localhost:8090`.
+
+## API exposed by backend
+
+### Send SMS
 `POST /api/messages/send`
 
 ```json
@@ -37,4 +44,4 @@ Then open:
 ### Fetch replies
 `GET /api/messages/replies?phone=+639xxxxxxxxx&since=1700000000000&limit=100`
 
-`since` is in milliseconds and should be persisted by your backend/web app for incremental polling.
+Use `since` as your incremental cursor in milliseconds.

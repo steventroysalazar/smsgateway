@@ -64,4 +64,4 @@ The `GET /messages` endpoint returns SMS messages received by the phone (inbox) 
 
 ## Web Backend Demo
 
-A starter Spring Boot backend and simple frontend are available at [`backend/`](backend/README.md). It can send SMS and manually fetch replies from the local Android gateway using incremental `since` polling.
+A starter Spring Boot backend and React-Vite frontend are available at [`backend/`](backend/README.md). It can send SMS and manually fetch replies from the local Android gateway using incremental `since` polling.
