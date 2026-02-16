@@ -126,15 +126,34 @@ dependencies {
     "traccarImplementation"(libs.firebase.messaging)
 }
 
+val firebaseConfigSource = rootProject.file("environment/firebase/traccar-sms-gateway.json")
+
 tasks.register<Copy>("copyFirebaseConfig") {
-    from("../../environment/firebase")
-    into(".")
-    include("traccar-sms-gateway.json")
-    rename("traccar-sms-gateway.json", "google-services.json")
+    onlyIf { firebaseConfigSource.exists() }
+    from(firebaseConfigSource.parentFile)
+    into(projectDir)
+    include(firebaseConfigSource.name)
+    rename(firebaseConfigSource.name, "google-services.json")
 }
 
 afterEvaluate {
+    val hasFirebaseConfig = firebaseConfigSource.exists()
+
     tasks.matching { it.name.contains("Traccar") }.configureEach {
-        dependsOn("copyFirebaseConfig")
+        if (hasFirebaseConfig) {
+            dependsOn("copyFirebaseConfig")
+        }
+    }
+
+    if (!hasFirebaseConfig) {
+        logger.warn(
+            "Firebase config not found at ${firebaseConfigSource.path}. " +
+                "Skipping Google Services processing for Traccar variants."
+        )
+
+        tasks.matching { it.name.contains("Traccar") && it.name.contains("GoogleServices") }
+            .configureEach {
+                enabled = false
+            }
     }
 }
