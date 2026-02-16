@@ -47,26 +47,26 @@ object GatewayServiceUtil {
         val args = mutableListOf<String>()
 
         if (since != null) {
-            conditions.add("${Telephony.Sms.DATE} >= ?")
+            conditions.add("${android.provider.Telephony.Sms.DATE} >= ?")
             args.add(since.toString())
         }
 
         val selection = conditions.joinToString(" AND ").ifBlank { null }
-        val sortOrder = "${Telephony.Sms.DATE} DESC"
+        val sortOrder = "${android.provider.Telephony.Sms.DATE} DESC"
 
         val results = mutableListOf<GatewayMessage>()
 
         context.contentResolver.query(
-            Telephony.Sms.Inbox.CONTENT_URI,
-            arrayOf(Telephony.Sms._ID, Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
+            android.provider.Telephony.Sms.Inbox.CONTENT_URI,
+            arrayOf(android.provider.Telephony.Sms._ID, android.provider.Telephony.Sms.ADDRESS, android.provider.Telephony.Sms.BODY, android.provider.Telephony.Sms.DATE),
             selection,
             args.toTypedArray(),
             sortOrder
         )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
-            val addressColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS)
-            val bodyColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
-            val dateColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.DATE)
+            val idColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms._ID)
+            val addressColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.ADDRESS)
+            val bodyColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.BODY)
+            val dateColumn = cursor.getColumnIndexOrThrow(android.provider.Telephony.Sms.DATE)
 
             while (cursor.moveToNext()) {
                 val address = cursor.getString(addressColumn)
