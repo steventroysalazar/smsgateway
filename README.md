@@ -4,7 +4,7 @@
 
 ## Overview
 
-Traccar SMS Gateway is an Android messaging app. The key difference from other messaging apps is an option to expose HTTP API for sending SMS messages through the phone.
+Traccar SMS Gateway is an Android messaging app. The key difference from other messaging apps is an option to expose a local-network HTTP API for sending and receiving SMS messages through the phone.
 
 The project is based on another open open source project - [Simple SMS Messenger](https://github.com/SimpleMobileTools/Simple-SMS-Messenger).
 
@@ -28,3 +28,40 @@ The project is based on another open open source project - [Simple SMS Messenger
 
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+## API
+
+The gateway API is local-network only (served from your phone on port 8082).
+
+### Send SMS
+
+```http
+POST /
+Authorization: <token>
+Content-Type: application/json
+
+{
+  "to": "+10000000000",
+  "message": "Your message",
+  "slot": 0
+}
+```
+
+### Read incoming replies
+
+```http
+GET /messages?phone=+10000000000&since=1700000000000&limit=100
+Authorization: <token>
+```
+
+The `GET /messages` endpoint returns SMS messages received by the phone (inbox) so your web/API client can display replies for numbers you messaged through the gateway. Use optional query parameters:
+
+- `phone`: filter by sender phone number (supports normalized matching for number formats like `+63...` vs `09...`).
+- `since`: unix timestamp in milliseconds; only return newer messages.
+- `limit`: max number of returned messages (default 100, max 1000).
+
+
+## Web Backend Demo
+
+A starter Spring Boot backend and React-Vite frontend are available at [`backend/`](backend/README.md). It can send SMS and manually fetch replies from the local Android gateway using incremental `since` polling.
