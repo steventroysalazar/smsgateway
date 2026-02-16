@@ -3,8 +3,10 @@ package org.traccar.gateway
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
+import android.provider.Telephony
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
+import android.provider.Telephony
 
 @Suppress("DEPRECATION")
 object GatewayServiceUtil {
