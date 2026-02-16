@@ -28,39 +28,6 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/gateway_cloud_label"
-                style="@style/SettingsSectionLabelStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/gateway_cloud_service" />
-
-            <RelativeLayout
-                android:id="@+id/gateway_cloud_key_holder"
-                style="@style/SettingsHolderTextViewStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.simplemobiletools.commons.views.MyTextView
-                    android:id="@+id/gateway_cloud_key_label"
-                    style="@style/SettingsTextLabelStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/gateway_key" />
-
-                <com.simplemobiletools.commons.views.MyTextView
-                    android:id="@+id/gateway_cloud_key"
-                    style="@style/SettingsTextValueStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/gateway_cloud_key_label" />
-
-            </RelativeLayout>
-
-            <include
-                android:id="@+id/gateway_cloud_divider"
-                layout="@layout/divider" />
-
-            <TextView
                 android:id="@+id/gateway_local_label"
                 style="@style/SettingsSectionLabelStyle"
                 android:layout_width="match_parent"
