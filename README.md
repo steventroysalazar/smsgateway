@@ -60,3 +60,8 @@ The `GET /messages` endpoint returns SMS messages received by the phone (inbox) 
 - `phone`: filter by sender phone number (supports normalized matching for number formats like `+63...` vs `09...`).
 - `since`: unix timestamp in milliseconds; only return newer messages.
 - `limit`: max number of returned messages (default 100, max 1000).
+
+
+## Web Backend Demo
+
+A starter Spring Boot backend and React-Vite frontend are available at [`backend/`](backend/README.md). It can send SMS and manually fetch replies from the local Android gateway using incremental `since` polling.

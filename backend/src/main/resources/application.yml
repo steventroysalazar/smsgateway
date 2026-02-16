@@ -1,0 +1,7 @@
+server:
+  port: 8090
+
+gateway:
+  base-url: http://192.168.1.55:8082
+  token: ""
+  default-limit: 100
