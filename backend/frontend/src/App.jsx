@@ -12,6 +12,8 @@ export default function App() {
   const [lastSentPhone, setLastSentPhone] = useState('')
   const [lastSeenTimestamp, setLastSeenTimestamp] = useState(0)
   const [status, setStatus] = useState('Ready.')
+  const [gatewayBaseUrl, setGatewayBaseUrl] = useState('')
+  const [gatewayToken, setGatewayToken] = useState('')
   const [replies, setReplies] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -36,7 +38,11 @@ export default function App() {
     try {
       const response = await fetch('/api/messages/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gatewayBaseUrl.trim() ? { 'X-Gateway-Base-Url': gatewayBaseUrl.trim() } : {}),
+          ...(gatewayToken.trim() ? { 'X-Gateway-Token': gatewayToken.trim() } : {})
+        },
         body: JSON.stringify({ to, message: body })
       })
 
@@ -74,7 +80,12 @@ export default function App() {
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/messages/replies?${params.toString()}`)
+      const response = await fetch(`/api/messages/replies?${params.toString()}`, {
+        headers: {
+          ...(gatewayBaseUrl.trim() ? { 'X-Gateway-Base-Url': gatewayBaseUrl.trim() } : {}),
+          ...(gatewayToken.trim() ? { 'X-Gateway-Token': gatewayToken.trim() } : {})
+        }
+      })
       const payload = await response.json().catch(() => [])
 
       if (!response.ok) {
@@ -107,6 +118,23 @@ export default function App() {
 
       <section className="card">
         <h2>Send Message</h2>
+
+
+        <label htmlFor="gatewayBaseUrl">Gateway Base URL (optional override)</label>
+        <input
+          id="gatewayBaseUrl"
+          placeholder="http://192.168.1.38:8082"
+          value={gatewayBaseUrl}
+          onChange={(event) => setGatewayBaseUrl(event.target.value)}
+        />
+
+        <label htmlFor="gatewayToken">Gateway Token (optional override)</label>
+        <input
+          id="gatewayToken"
+          placeholder="acbc45e4-c9c1-469e-b5bc-77290cc5c907"
+          value={gatewayToken}
+          onChange={(event) => setGatewayToken(event.target.value)}
+        />
 
         <label htmlFor="phone">Phone Number</label>
         <input

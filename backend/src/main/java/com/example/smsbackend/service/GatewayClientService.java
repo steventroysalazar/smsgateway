@@ -2,6 +2,7 @@ package com.example.smsbackend.service;
 
 import com.example.smsbackend.config.GatewayProperties;
 import com.example.smsbackend.dto.GatewayReplyMessage;
+import com.example.smsbackend.dto.GatewayRequestOptions;
 import com.example.smsbackend.dto.SendMessageRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,34 +41,36 @@ public class GatewayClientService {
         this.restTemplate = new RestTemplate(requestFactory);
     }
 
-    public void sendMessage(SendMessageRequest request) {
-        HttpHeaders headers = authHeaders();
+    public void sendMessage(SendMessageRequest request, GatewayRequestOptions options) {
+        String baseUrl = resolveBaseUrl(options);
+
+        HttpHeaders headers = authHeaders(options);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<SendMessageRequest> entity = new HttpEntity<>(request, headers);
         ResponseEntity<String> response;
         try {
-            response = restTemplate.exchange(
-                properties.baseUrl(),
-                HttpMethod.POST,
-                entity,
-                String.class
-            );
+            response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, String.class);
         } catch (ResourceAccessException e) {
             throw new IllegalStateException(
-                "Cannot reach Android gateway at " + properties.baseUrl() +
+                "Cannot reach Android gateway at " + baseUrl +
                     ". Verify phone IP/port and that service is enabled.",
                 e
             );
         }
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new IllegalStateException("Gateway send failed: HTTP " + response.getStatusCode().value());
+            throw new IllegalStateException(
+                "Gateway send failed: HTTP " + response.getStatusCode().value() +
+                    bodySuffix(response.getBody())
+            );
         }
     }
 
-    public List<GatewayReplyMessage> fetchMessages(String phone, Long since, Integer limit) {
-        String url = UriComponentsBuilder.fromHttpUrl(properties.baseUrl())
+    public List<GatewayReplyMessage> fetchMessages(String phone, Long since, Integer limit, GatewayRequestOptions options) {
+        String baseUrl = resolveBaseUrl(options);
+
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
             .path("/messages")
             .queryParamIfPresent("phone", optional(phone))
             .queryParamIfPresent("since", optional(since))
@@ -75,20 +78,27 @@ public class GatewayClientService {
             .build(true)
             .toUriString();
 
-        HttpEntity<Void> entity = new HttpEntity<>(authHeaders());
+        HttpEntity<Void> entity = new HttpEntity<>(authHeaders(options));
 
         ResponseEntity<String> response;
         try {
             response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         } catch (ResourceAccessException e) {
             throw new IllegalStateException(
-                "Cannot reach Android gateway at " + properties.baseUrl() +
+                "Cannot reach Android gateway at " + baseUrl +
                     ". Verify phone IP/port and that service is enabled.",
                 e
             );
         }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException(
+                "Gateway fetch failed: HTTP " + response.getStatusCode().value() +
+                    bodySuffix(response.getBody())
+            );
+        }
+
+        if (response.getBody() == null || response.getBody().isBlank()) {
             return Collections.emptyList();
         }
 
@@ -100,12 +110,36 @@ public class GatewayClientService {
         }
     }
 
-    private HttpHeaders authHeaders() {
+    private HttpHeaders authHeaders(GatewayRequestOptions options) {
         HttpHeaders headers = new HttpHeaders();
-        if (StringUtils.hasText(properties.token())) {
-            headers.set(HttpHeaders.AUTHORIZATION, properties.token());
+
+        String token = options != null && StringUtils.hasText(options.token())
+            ? options.token()
+            : properties.token();
+
+        if (StringUtils.hasText(token)) {
+            headers.set(HttpHeaders.AUTHORIZATION, token);
         }
         return headers;
+    }
+
+    private String resolveBaseUrl(GatewayRequestOptions options) {
+        if (options != null && StringUtils.hasText(options.baseUrl())) {
+            return options.baseUrl().trim();
+        }
+        return properties.baseUrl();
+    }
+
+    private String bodySuffix(String body) {
+        if (!StringUtils.hasText(body)) {
+            return "";
+        }
+
+        String trimmed = body.trim();
+        if (trimmed.length() > 300) {
+            trimmed = trimmed.substring(0, 300) + "...";
+        }
+        return ", body: " + trimmed;
     }
 
     private static <T> java.util.Optional<T> optional(T value) {
