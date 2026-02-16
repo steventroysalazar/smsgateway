@@ -75,6 +75,10 @@ class GatewayService : Service(), GatewayServer.Handler {
         return null
     }
 
+    override fun onGetMessages(phone: String?, since: Long?, limit: Int?): List<GatewayMessage> {
+        return GatewayServiceUtil.getIncomingMessages(this, phone, since, limit)
+    }
+
     override fun onSendMessage(phone: String, message: String, slot: Int?): String? {
         return try {
             GatewayServiceUtil.sendMessage(this, phone, message, slot)
