@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.provider.Telephony
-import android.telephony.PhoneNumberUtils
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
 import android.provider.Telephony
@@ -116,9 +115,6 @@ object GatewayServiceUtil {
             return true
         }
 
-        if (PhoneNumberUtils.compare(address, phoneQuery)) {
-            return true
-        }
 
         val normalizedAddress = address.normalizePhoneDigits()
         val normalizedQuery = phoneQuery.normalizePhoneDigits()
