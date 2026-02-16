@@ -40,7 +40,12 @@ class GatewayActivity : SimpleActivity() {
         setupToolbar(binding.gatewayToolbar, NavigationIcon.Arrow)
 
         binding.gatewayLocalKey.text = getKey()
-        binding.gatewayLocalEndpoints.text = getAddressList().joinToString("\n")
+        val endpoints = getAddressList()
+        binding.gatewayLocalEndpoints.text = if (endpoints.isEmpty()) {
+            getString(R.string.gateway_no_endpoints)
+        } else {
+            endpoints.joinToString("\n")
+        }
 
         binding.gatewayLocalEnable.isChecked = GatewayServiceUtil.isServiceRunning(this)
         binding.gatewayLocalEnableHolder.setOnClickListener {
@@ -61,8 +66,10 @@ class GatewayActivity : SimpleActivity() {
             Toast.makeText(this, R.string.gateway_copied_toast, Toast.LENGTH_SHORT).show()
         }
         binding.gatewayLocalEndpointsHolder.setOnClickListener {
-            clipboard?.text = binding.gatewayLocalEndpoints.text
-            Toast.makeText(this, R.string.gateway_copied_toast, Toast.LENGTH_SHORT).show()
+            if (endpoints.isNotEmpty()) {
+                clipboard?.text = binding.gatewayLocalEndpoints.text
+                Toast.makeText(this, R.string.gateway_copied_toast, Toast.LENGTH_SHORT).show()
+            }
         }
 
         updateTextColors(binding.gatewayNestedScrollview)

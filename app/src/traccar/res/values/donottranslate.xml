@@ -11,6 +11,7 @@
     <string name="gateway_key">Token</string>
     <string name="gateway_endpoints">Endpoints</string>
     <string name="gateway_copied_toast">Copied</string>
+    <string name="gateway_no_endpoints">No local network endpoint found</string>
     <string name="gateway_service_title">SMS API service is running</string>
     <string name="gateway_service_description">Tap to open the app</string>
 
