@@ -3,5 +3,5 @@ server:
 
 gateway:
   base-url: http://192.168.1.55:8082
-  token: ""
+  token: "acbc45e4-c9c1-469e-b5bc-77290cc5c907"
   default-limit: 100

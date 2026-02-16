@@ -45,3 +45,11 @@ Frontend runs on `http://localhost:5173` and proxies `/api` to `http://localhost
 `GET /api/messages/replies?phone=+639xxxxxxxxx&since=1700000000000&limit=100`
 
 Use `since` as your incremental cursor in milliseconds.
+
+
+## Troubleshooting
+
+- If Postman returns `connection timed out: connect`, your Spring backend cannot reach `gateway.base-url`.
+- Verify the phone endpoint shown in the Android app matches `gateway.base-url` exactly (IP + port).
+- Verify the Android gateway service is enabled.
+- Verify `gateway.token` matches the Android app token exactly.
