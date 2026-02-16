@@ -4,7 +4,7 @@
 
 ## Overview
 
-Traccar SMS Gateway is an Android messaging app. The key difference from other messaging apps is an option to expose HTTP API for sending SMS messages through the phone.
+Traccar SMS Gateway is an Android messaging app. The key difference from other messaging apps is an option to expose a local-network HTTP API for sending and receiving SMS messages through the phone.
 
 The project is based on another open open source project - [Simple SMS Messenger](https://github.com/SimpleMobileTools/Simple-SMS-Messenger).
 
@@ -31,6 +31,8 @@ The project is based on another open open source project - [Simple SMS Messenger
 
 
 ## API
+
+The gateway API is local-network only (served from your phone on port 8082).
 
 ### Send SMS
 

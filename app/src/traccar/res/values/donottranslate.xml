@@ -6,7 +6,6 @@
 
     <string name="gateway_channel">Gateway</string>
     <string name="gateway_title">Gateway</string>
-    <string name="gateway_cloud_service">Cloud Service</string>
     <string name="gateway_local_service">Local Service</string>
     <string name="gateway_local_enable">Enable service</string>
     <string name="gateway_key">Token</string>

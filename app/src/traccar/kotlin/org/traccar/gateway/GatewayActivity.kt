@@ -9,21 +9,21 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import com.google.firebase.messaging.FirebaseMessaging
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.*
+import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.smsmessenger.R
 import com.simplemobiletools.smsmessenger.activities.SimpleActivity
 import com.simplemobiletools.smsmessenger.databinding.ActivityGatewayBinding
 import java.net.Inet4Address
 import java.net.NetworkInterface
-import java.util.*
+import java.util.UUID
 
 class GatewayActivity : SimpleActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
 
     private val binding by viewBinding(ActivityGatewayBinding::inflate)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
@@ -38,12 +38,6 @@ class GatewayActivity : SimpleActivity() {
     override fun onResume() {
         super.onResume()
         setupToolbar(binding.gatewayToolbar, NavigationIcon.Arrow)
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                binding.gatewayCloudKey.text = task.result
-            }
-        }
 
         binding.gatewayLocalKey.text = getKey()
         binding.gatewayLocalEndpoints.text = getAddressList().joinToString("\n")
@@ -62,10 +56,6 @@ class GatewayActivity : SimpleActivity() {
 
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager?
 
-        binding.gatewayCloudKeyHolder.setOnClickListener {
-            clipboard?.text = binding.gatewayCloudKey.text
-            Toast.makeText(this, R.string.gateway_copied_toast, Toast.LENGTH_SHORT).show()
-        }
         binding.gatewayLocalKeyHolder.setOnClickListener {
             clipboard?.text = binding.gatewayLocalKey.text
             Toast.makeText(this, R.string.gateway_copied_toast, Toast.LENGTH_SHORT).show()
@@ -89,10 +79,12 @@ class GatewayActivity : SimpleActivity() {
 
     private fun getAddressList(): List<String> {
         val result = mutableListOf<String>()
-        NetworkInterface.getNetworkInterfaces().toList().forEach { networkInterface ->
-            networkInterface.inetAddresses.toList().forEach { address ->
-                if (!address.isLoopbackAddress && address is Inet4Address) {
-                    result.add("http:/${address}:${GatewayService.DEFAULT_PORT}")
+        runCatching {
+            NetworkInterface.getNetworkInterfaces().toList().forEach { networkInterface ->
+                networkInterface.inetAddresses.toList().forEach { address ->
+                    if (!address.isLoopbackAddress && address is Inet4Address) {
+                        result.add("http://${address.hostAddress}:${GatewayService.DEFAULT_PORT}")
+                    }
                 }
             }
         }

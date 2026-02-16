@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.firebase.crashlytics)
     base
 }
 
@@ -119,41 +117,5 @@ dependencies {
     "traccarImplementation"(libs.javax.servlet)
     "traccarImplementation"(libs.jetty.server) {
         exclude(group = "org.eclipse.jetty.orbit", module = "javax.servlet")
-    }
-    "traccarImplementation"(platform(libs.firebase.bom))
-    "traccarImplementation"(libs.firebase.analytics)
-    "traccarImplementation"(libs.firebase.crashlytics)
-    "traccarImplementation"(libs.firebase.messaging)
-}
-
-val firebaseConfigSource = rootProject.file("environment/firebase/traccar-sms-gateway.json")
-
-tasks.register<Copy>("copyFirebaseConfig") {
-    onlyIf { firebaseConfigSource.exists() }
-    from(firebaseConfigSource.parentFile)
-    into(projectDir)
-    include(firebaseConfigSource.name)
-    rename(firebaseConfigSource.name, "google-services.json")
-}
-
-afterEvaluate {
-    val hasFirebaseConfig = firebaseConfigSource.exists()
-
-    tasks.matching { it.name.contains("Traccar") }.configureEach {
-        if (hasFirebaseConfig) {
-            dependsOn("copyFirebaseConfig")
-        }
-    }
-
-    if (!hasFirebaseConfig) {
-        logger.warn(
-            "Firebase config not found at ${firebaseConfigSource.path}. " +
-                "Skipping Google Services processing for Traccar variants."
-        )
-
-        tasks.matching { it.name.contains("Traccar") && it.name.contains("GoogleServices") }
-            .configureEach {
-                enabled = false
-            }
     }
 }
