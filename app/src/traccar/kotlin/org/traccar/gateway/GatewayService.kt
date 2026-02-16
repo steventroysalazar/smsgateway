@@ -63,16 +63,33 @@ class GatewayService : Service(), GatewayServer.Handler {
         } else {
             startForeground(NOTIFICATION_ID, createNotification(this))
         }
-        gatewayServer.start()
-        return START_STICKY
+
+        return try {
+            if (!gatewayServer.isStarted && !gatewayServer.isStarting) {
+                gatewayServer.start()
+            }
+            START_STICKY
+        } catch (e: Exception) {
+            Toast.makeText(this, e.message ?: "Failed to start gateway service", Toast.LENGTH_LONG).show()
+            stopSelf()
+            START_NOT_STICKY
+        }
     }
 
     override fun onDestroy() {
-        gatewayServer.stop()
+        runCatching {
+            if (gatewayServer.isRunning || gatewayServer.isStarting) {
+                gatewayServer.stop()
+            }
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    override fun onGetMessages(phone: String?, since: Long?, limit: Int?): List<GatewayMessage> {
+        return GatewayServiceUtil.getIncomingMessages(this, phone, since, limit)
     }
 
     override fun onSendMessage(phone: String, message: String, slot: Int?): String? {

@@ -6,12 +6,12 @@
 
     <string name="gateway_channel">Gateway</string>
     <string name="gateway_title">Gateway</string>
-    <string name="gateway_cloud_service">Cloud Service</string>
     <string name="gateway_local_service">Local Service</string>
     <string name="gateway_local_enable">Enable service</string>
     <string name="gateway_key">Token</string>
     <string name="gateway_endpoints">Endpoints</string>
     <string name="gateway_copied_toast">Copied</string>
+    <string name="gateway_no_endpoints">No local network endpoint found</string>
     <string name="gateway_service_title">SMS API service is running</string>
     <string name="gateway_service_description">Tap to open the app</string>
 
