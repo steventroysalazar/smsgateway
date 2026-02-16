@@ -57,6 +57,6 @@ Authorization: <token>
 
 The `GET /messages` endpoint returns SMS messages received by the phone (inbox) so your web/API client can display replies for numbers you messaged through the gateway. Use optional query parameters:
 
-- `phone`: filter by sender phone number.
+- `phone`: filter by sender phone number (supports normalized matching for number formats like `+63...` vs `09...`).
 - `since`: unix timestamp in milliseconds; only return newer messages.
 - `limit`: max number of returned messages (default 100, max 1000).
