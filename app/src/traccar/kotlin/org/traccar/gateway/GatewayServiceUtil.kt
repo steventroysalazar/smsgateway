@@ -7,6 +7,7 @@ import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
+import android.provider.Telephony
 
 @Suppress("DEPRECATION")
 object GatewayServiceUtil {
