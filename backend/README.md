@@ -64,3 +64,5 @@ This is useful when phone IP changes.
 - Verify `gateway.token` matches the Android app token exactly.
 
 - If backend returns `502 Bad Gateway` but direct call to phone works, your backend likely points to stale `gateway.base-url` (old phone IP). Use `X-Gateway-Base-Url` header or update `application.yml`.
+- If API returns an error like `Gateway send failed: HTTP 500, body: Error: 500`, the phone gateway itself rejected the request. Check phone number format, SIM availability, SMS permission/default SMS app status, and token value.
+- Backend now forwards downstream gateway status in the response (`downstreamStatus`) so if phone returns `500`, you will see `500` from backend plus the phone error body snippet.

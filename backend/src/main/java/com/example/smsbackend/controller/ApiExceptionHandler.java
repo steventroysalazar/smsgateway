@@ -1,5 +1,6 @@
 package com.example.smsbackend.controller;
 
+import com.example.smsbackend.service.GatewayClientException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(GatewayClientException.class)
+    public ResponseEntity<Map<String, Object>> handleGateway(GatewayClientException e) {
+        HttpStatus status = HttpStatus.resolve(e.getStatusCode());
+        if (status == null) {
+            status = HttpStatus.BAD_GATEWAY;
+        }
+
+        return ResponseEntity.status(status).body(Map.of(
+            "success", false,
+            "error", e.getMessage(),
+            "downstreamStatus", e.getStatusCode()
+        ));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException e) {

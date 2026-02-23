@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -51,6 +52,12 @@ public class GatewayClientService {
         ResponseEntity<String> response;
         try {
             response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, String.class);
+        } catch (HttpStatusCodeException e) {
+            throw new GatewayClientException(
+                e.getStatusCode().value(),
+                "Gateway send failed: HTTP " + e.getStatusCode().value() + bodySuffix(e.getResponseBodyAsString()),
+                e
+            );
         } catch (ResourceAccessException e) {
             throw new IllegalStateException(
                 "Cannot reach Android gateway at " + baseUrl +
@@ -60,7 +67,8 @@ public class GatewayClientService {
         }
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new IllegalStateException(
+            throw new GatewayClientException(
+                response.getStatusCode().value(),
                 "Gateway send failed: HTTP " + response.getStatusCode().value() +
                     bodySuffix(response.getBody())
             );
@@ -83,6 +91,12 @@ public class GatewayClientService {
         ResponseEntity<String> response;
         try {
             response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        } catch (HttpStatusCodeException e) {
+            throw new GatewayClientException(
+                e.getStatusCode().value(),
+                "Gateway fetch failed: HTTP " + e.getStatusCode().value() + bodySuffix(e.getResponseBodyAsString()),
+                e
+            );
         } catch (ResourceAccessException e) {
             throw new IllegalStateException(
                 "Cannot reach Android gateway at " + baseUrl +
@@ -92,7 +106,8 @@ public class GatewayClientService {
         }
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new IllegalStateException(
+            throw new GatewayClientException(
+                response.getStatusCode().value(),
                 "Gateway fetch failed: HTTP " + response.getStatusCode().value() +
                     bodySuffix(response.getBody())
             );
