@@ -41,7 +41,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           ...(gatewayBaseUrl.trim() ? { 'X-Gateway-Base-Url': gatewayBaseUrl.trim() } : {}),
-          ...(gatewayToken.trim() ? { 'X-Gateway-Token': gatewayToken.trim() } : {})
+          ...(gatewayToken.trim() ? { Authorization: gatewayToken.trim() } : {})
         },
         body: JSON.stringify({ to, message: body })
       })
@@ -83,7 +83,7 @@ export default function App() {
       const response = await fetch(`/api/messages/replies?${params.toString()}`, {
         headers: {
           ...(gatewayBaseUrl.trim() ? { 'X-Gateway-Base-Url': gatewayBaseUrl.trim() } : {}),
-          ...(gatewayToken.trim() ? { 'X-Gateway-Token': gatewayToken.trim() } : {})
+          ...(gatewayToken.trim() ? { Authorization: gatewayToken.trim() } : {})
         }
       })
       const payload = await response.json().catch(() => [])

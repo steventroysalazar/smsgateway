@@ -31,9 +31,11 @@ public class MessageController {
     public ResponseEntity<SendMessageResponse> send(
         @Valid @RequestBody SendMessageRequest request,
         @RequestHeader(value = "X-Gateway-Base-Url", required = false) String gatewayBaseUrl,
-        @RequestHeader(value = "X-Gateway-Token", required = false) String gatewayToken
+        @RequestHeader(value = "Authorization", required = false) String gatewayToken,
+        @RequestHeader(value = "X-Gateway-Token", required = false) String legacyGatewayToken
     ) {
-        gatewayClientService.sendMessage(request, new GatewayRequestOptions(gatewayBaseUrl, gatewayToken));
+        String resolvedToken = gatewayToken != null && !gatewayToken.isBlank() ? gatewayToken : legacyGatewayToken;
+        gatewayClientService.sendMessage(request, new GatewayRequestOptions(gatewayBaseUrl, resolvedToken));
         return ResponseEntity.ok(new SendMessageResponse(true, "Message sent"));
     }
 
@@ -43,22 +45,26 @@ public class MessageController {
         @RequestParam(required = false) Long since,
         @RequestParam(required = false) Integer limit,
         @RequestHeader(value = "X-Gateway-Base-Url", required = false) String gatewayBaseUrl,
-        @RequestHeader(value = "X-Gateway-Token", required = false) String gatewayToken
+        @RequestHeader(value = "Authorization", required = false) String gatewayToken,
+        @RequestHeader(value = "X-Gateway-Token", required = false) String legacyGatewayToken
     ) {
+        String resolvedToken = gatewayToken != null && !gatewayToken.isBlank() ? gatewayToken : legacyGatewayToken;
         return ResponseEntity.ok(gatewayClientService.fetchMessages(
             phone,
             since,
             limit,
-            new GatewayRequestOptions(gatewayBaseUrl, gatewayToken)
+            new GatewayRequestOptions(gatewayBaseUrl, resolvedToken)
         ));
     }
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health(
         @RequestHeader(value = "X-Gateway-Base-Url", required = false) String gatewayBaseUrl,
-        @RequestHeader(value = "X-Gateway-Token", required = false) String gatewayToken
+        @RequestHeader(value = "Authorization", required = false) String gatewayToken,
+        @RequestHeader(value = "X-Gateway-Token", required = false) String legacyGatewayToken
     ) {
-        gatewayClientService.fetchMessages(null, null, 1, new GatewayRequestOptions(gatewayBaseUrl, gatewayToken));
+        String resolvedToken = gatewayToken != null && !gatewayToken.isBlank() ? gatewayToken : legacyGatewayToken;
+        gatewayClientService.fetchMessages(null, null, 1, new GatewayRequestOptions(gatewayBaseUrl, resolvedToken));
         return ResponseEntity.ok(Map.of("success", true, "message", "Gateway reachable"));
     }
 }

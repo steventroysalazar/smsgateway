@@ -51,7 +51,7 @@ Use `since` as your incremental cursor in milliseconds.
 You can override backend config per request (without restarting backend):
 
 - `X-Gateway-Base-Url`: e.g. `http://192.168.1.38:8082`
-- `X-Gateway-Token`: e.g. `acbc45e4-c9c1-469e-b5bc-77290cc5c907`
+- `Authorization`: set directly to API key value (no `Bearer` prefix), e.g. `acbc45e4-c9c1-469e-b5bc-77290cc5c907`
 
 This is useful when phone IP changes.
 
