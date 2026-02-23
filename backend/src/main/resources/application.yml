@@ -1,0 +1,22 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/smsgateway;MODE=PostgreSQL;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+gateway:
+  base-url: http://192.168.1.37:8082
+  token: "00f30633-4029-4cb7-b088-1f84e7251a53"
+  default-limit: 100
