@@ -55,6 +55,20 @@ You can override backend config per request (without restarting backend):
 
 This is useful when phone IP changes.
 
+### Debug effective backend target
+When direct phone call works but backend call fails, check what backend is actually using:
+
+```http
+GET /api/messages/debug/config
+```
+
+This returns:
+- resolved base URL
+- masked token preview
+- whether override headers were provided on the request
+
+So you can quickly confirm backend is targeting the same phone endpoint/token as your direct Postman call.
+
 
 ## Troubleshooting
 

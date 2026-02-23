@@ -1,5 +1,6 @@
 package com.example.smsbackend.controller;
 
+import com.example.smsbackend.config.GatewayProperties;
 import com.example.smsbackend.dto.GatewayReplyMessage;
 import com.example.smsbackend.dto.GatewayRequestOptions;
 import com.example.smsbackend.dto.SendMessageRequest;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MessageController {
 
     private final GatewayClientService gatewayClientService;
+    private final GatewayProperties gatewayProperties;
 
-    public MessageController(GatewayClientService gatewayClientService) {
+    public MessageController(GatewayClientService gatewayClientService, GatewayProperties gatewayProperties) {
         this.gatewayClientService = gatewayClientService;
+        this.gatewayProperties = gatewayProperties;
     }
 
     @PostMapping("/send")
@@ -66,5 +69,39 @@ public class MessageController {
         String resolvedToken = gatewayToken != null && !gatewayToken.isBlank() ? gatewayToken : legacyGatewayToken;
         gatewayClientService.fetchMessages(null, null, 1, new GatewayRequestOptions(gatewayBaseUrl, resolvedToken));
         return ResponseEntity.ok(Map.of("success", true, "message", "Gateway reachable"));
+    }
+
+    @GetMapping("/debug/config")
+    public ResponseEntity<Map<String, Object>> debugConfig(
+        @RequestHeader(value = "X-Gateway-Base-Url", required = false) String gatewayBaseUrl,
+        @RequestHeader(value = "Authorization", required = false) String gatewayToken,
+        @RequestHeader(value = "X-Gateway-Token", required = false) String legacyGatewayToken
+    ) {
+        String resolvedBaseUrl = gatewayBaseUrl != null && !gatewayBaseUrl.isBlank()
+            ? gatewayBaseUrl.trim()
+            : gatewayProperties.baseUrl();
+
+        String resolvedToken = gatewayToken != null && !gatewayToken.isBlank()
+            ? gatewayToken
+            : (legacyGatewayToken != null && !legacyGatewayToken.isBlank() ? legacyGatewayToken : gatewayProperties.token());
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "resolvedBaseUrl", resolvedBaseUrl,
+            "resolvedTokenPreview", maskToken(resolvedToken),
+            "headerAuthorizationProvided", gatewayToken != null && !gatewayToken.isBlank(),
+            "headerLegacyTokenProvided", legacyGatewayToken != null && !legacyGatewayToken.isBlank(),
+            "headerBaseUrlProvided", gatewayBaseUrl != null && !gatewayBaseUrl.isBlank()
+        ));
+    }
+
+    private String maskToken(String token) {
+        if (token == null || token.isBlank()) {
+            return "(empty)";
+        }
+
+        String trimmed = token.trim();
+        int keep = Math.min(4, trimmed.length());
+        return "****" + trimmed.substring(trimmed.length() - keep);
     }
 }
