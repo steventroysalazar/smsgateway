@@ -8,7 +8,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,7 +50,14 @@ public class GatewayClientService {
         HttpHeaders headers = authHeaders(options);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<SendMessageRequest> entity = new HttpEntity<>(request, headers);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("to", request.to());
+        payload.put("message", request.message());
+        if (request.slot() != null) {
+            payload.put("slot", request.slot());
+        }
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
         ResponseEntity<String> response;
         try {
             response = restTemplate.exchange(baseUrl, HttpMethod.POST, entity, String.class);
