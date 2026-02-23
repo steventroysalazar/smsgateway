@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.firebase.crashlytics)
     base
 }
 
@@ -119,22 +117,5 @@ dependencies {
     "traccarImplementation"(libs.javax.servlet)
     "traccarImplementation"(libs.jetty.server) {
         exclude(group = "org.eclipse.jetty.orbit", module = "javax.servlet")
-    }
-    "traccarImplementation"(platform(libs.firebase.bom))
-    "traccarImplementation"(libs.firebase.analytics)
-    "traccarImplementation"(libs.firebase.crashlytics)
-    "traccarImplementation"(libs.firebase.messaging)
-}
-
-tasks.register<Copy>("copyFirebaseConfig") {
-    from("../../environment/firebase")
-    into(".")
-    include("traccar-sms-gateway.json")
-    rename("traccar-sms-gateway.json", "google-services.json")
-}
-
-afterEvaluate {
-    tasks.matching { it.name.contains("Traccar") }.configureEach {
-        dependsOn("copyFirebaseConfig")
     }
 }
