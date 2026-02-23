@@ -1,82 +1,104 @@
 # SMS Sender Backend (Spring Boot + React Vite)
 
-This folder now contains:
-- a Spring Boot backend API (`/api/messages/...`) that talks to the Android SMS gateway
-- a React + Vite frontend (`frontend/`) for sending SMS and manually fetching replies
+This backend now includes:
+- Gateway bridge APIs (`/api/messages/...`) to send/fetch SMS via Android gateway
+- SQL-backed user/device management (`/api/users...`)
+- Device configuration APIs (`/api/send-config`, `/api/inbound-messages`) for EV12-style command flow
+- React + Vite frontend (`frontend/`)
 
 ## 1) Backend setup
 Edit `src/main/resources/application.yml`:
 
-- `gateway.base-url`: Android gateway URL (example `http://192.168.1.55:8082`)
+- `gateway.base-url`: Android gateway URL (example `http://192.168.1.37:8082`)
 - `gateway.token`: token shown in Android gateway app
 - `gateway.default-limit`: max replies per fetch
+
+Database (SQL) is enabled using H2 file storage:
+- DB file: `backend/data/smsgateway.mv.db`
+- H2 console: `http://localhost:8090/h2-console`
 
 Run backend:
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-Backend runs on `http://localhost:8090`.
 
 ## 2) Frontend setup (React + Vite)
-
-Install and run:
 ```bash
 cd backend/frontend
 npm install
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173` and proxies `/api` to `http://localhost:8090`.
+## API (new user/device flow)
 
-## API exposed by backend
-
-### Send SMS
-`POST /api/messages/send`
-
+### Create user
+`POST /api/users`
 ```json
 {
-  "to": "+639xxxxxxxxx",
-  "message": "Hello"
+  "name": "John Doe",
+  "email": "john@example.com"
 }
 ```
 
-### Fetch replies
-`GET /api/messages/replies?phone=+639xxxxxxxxx&since=1700000000000&limit=100`
+### List users
+`GET /api/users`
 
-Use `since` as your incremental cursor in milliseconds.
-
-
-### Optional runtime override headers (for Postman/testing)
-You can override backend config per request (without restarting backend):
-
-- `X-Gateway-Base-Url`: e.g. `http://192.168.1.38:8082`
-- `Authorization`: set directly to API key value (no `Bearer` prefix), e.g. `acbc45e4-c9c1-469e-b5bc-77290cc5c907`
-
-This is useful when phone IP changes.
-
-### Debug effective backend target
-When direct phone call works but backend call fails, check what backend is actually using:
-
-```http
-GET /api/messages/debug/config
+### Add device to user
+`POST /api/users/{userId}/devices`
+```json
+{
+  "name": "EV12 Wristband",
+  "phoneNumber": "+639973079369"
+}
 ```
 
-This returns:
-- resolved base URL
-- masked token preview
-- whether override headers were provided on the request
+### List user devices
+`GET /api/users/{userId}/devices`
 
-So you can quickly confirm backend is targeting the same phone endpoint/token as your direct Postman call.
+## API (EV12 config flow)
 
+### Send generated EV12 command SMS
+`POST /api/send-config`
+
+```json
+{
+  "deviceId": 1,
+  "contactNumber": "+639111111111",
+  "smsPassword": "123456",
+  "requestLocation": true,
+  "wifiEnabled": true,
+  "checkBattery": true,
+  "workingMode": "mode1",
+  "checkStatus": true
+}
+```
+
+The backend builds the semicolon-separated command preview, splits into 150-char SMS chunks, and sends each chunk to the device number via Android gateway.
+
+### Fetch inbound messages for UI polling
+`GET /api/inbound-messages?phone=+639973079369&since=1700000000&limit=100`
+
+- `since` supports seconds or milliseconds epoch values
+- Response is formatted for frontend usage with fields:
+  - `id`
+  - `from`
+  - `text`
+  - `receivedAt` (ISO timestamp)
+
+## Existing gateway bridge API
+
+- `POST /api/messages/send`
+- `GET /api/messages/replies`
+- `GET /api/messages/health`
+- `GET /api/messages/debug/config`
+
+## Runtime override headers
+
+- `X-Gateway-Base-Url`: override target gateway URL
+- `Authorization`: raw API key (no `Bearer` prefix)
 
 ## Troubleshooting
 
-- If Postman returns `connection timed out: connect`, your Spring backend cannot reach `gateway.base-url`.
-- Verify the phone endpoint shown in the Android app matches `gateway.base-url` exactly (IP + port).
-- Verify the Android gateway service is enabled.
-- Verify `gateway.token` matches the Android app token exactly.
-
-- If backend returns `502 Bad Gateway` but direct call to phone works, your backend likely points to stale `gateway.base-url` (old phone IP). Use `X-Gateway-Base-Url` header or update `application.yml`.
-- If API returns an error like `Gateway send failed: HTTP 500, body: Error: 500`, the phone gateway itself rejected the request. Check phone number format, SIM availability, SMS permission/default SMS app status, and token value.
-- Backend now forwards downstream gateway status in the response (`downstreamStatus`) so if phone returns `500`, you will see `500` from backend plus the phone error body snippet.
+- If direct phone call works but backend fails, call `GET /api/messages/debug/config` and verify resolved base URL/token.
+- If backend returns `Gateway send failed: HTTP 500, body: Error: 500`, the Android gateway rejected the request. Check SIM, SMS permission/default app status, token, and phone number format.

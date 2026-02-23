@@ -36,6 +36,17 @@ public class ApiExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException e) {
+        HttpStatus status = e.getMessage() != null && e.getMessage().toLowerCase().contains("not found")
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(Map.of(
+            "success", false,
+            "error", e.getMessage()
+        ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
