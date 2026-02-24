@@ -1,9 +1,9 @@
 package com.example.smsbackend.service;
 
 import com.example.smsbackend.dto.CreateDeviceRequest;
-import com.example.smsbackend.dto.CreateUserRequest;
 import com.example.smsbackend.entity.AppUser;
 import com.example.smsbackend.entity.Device;
+import com.example.smsbackend.entity.UserRole;
 import com.example.smsbackend.repository.AppUserRepository;
 import com.example.smsbackend.repository.DeviceRepository;
 import java.util.List;
@@ -21,21 +21,19 @@ public class UserDeviceService {
         this.deviceRepository = deviceRepository;
     }
 
-    @Transactional
-    public AppUser createUser(CreateUserRequest request) {
-        appUserRepository.findByEmailIgnoreCase(request.email().trim()).ifPresent(existing -> {
-            throw new IllegalArgumentException("User with that email already exists.");
-        });
-
-        AppUser user = new AppUser();
-        user.setName(request.name().trim());
-        user.setEmail(request.email().trim());
-        return appUserRepository.save(user);
-    }
-
     @Transactional(readOnly = true)
     public List<AppUser> listUsers() {
         return appUserRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppUser> listUsersByManager(Long managerId) {
+        AppUser manager = appUserRepository.findById(managerId)
+            .orElseThrow(() -> new IllegalArgumentException("Manager not found."));
+        if (manager.getRole() != UserRole.MANAGER) {
+            throw new IllegalArgumentException("Provided id is not a manager.");
+        }
+        return appUserRepository.findByManagerId(managerId);
     }
 
     @Transactional
@@ -56,6 +54,11 @@ public class UserDeviceService {
             throw new IllegalArgumentException("User not found.");
         }
         return deviceRepository.findByUserIdOrderByNameAsc(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Device> listDevicesByLocation(Long locationId) {
+        return deviceRepository.findByUserLocationId(locationId);
     }
 
     @Transactional(readOnly = true)

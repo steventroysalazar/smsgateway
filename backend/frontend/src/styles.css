@@ -63,6 +63,18 @@ button:disabled {
   font-weight: 600;
 }
 
+.grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 800px) {
+  .grid-two {
+    grid-template-columns: 1fr;
+  }
+}
+
 .replies {
   margin-top: 0.75rem;
   background: #f8fafc;

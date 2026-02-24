@@ -1,11 +1,10 @@
 package com.example.smsbackend.controller;
 
 import com.example.smsbackend.dto.CreateDeviceRequest;
-import com.example.smsbackend.dto.CreateUserRequest;
 import com.example.smsbackend.dto.DeviceResponse;
 import com.example.smsbackend.dto.UserResponse;
-import com.example.smsbackend.entity.AppUser;
 import com.example.smsbackend.entity.Device;
+import com.example.smsbackend.service.AuthService;
 import com.example.smsbackend.service.UserDeviceService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,16 +27,15 @@ public class UserController {
         this.userDeviceService = userDeviceService;
     }
 
-    @PostMapping("/users")
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        AppUser user = userDeviceService.createUser(request);
-        return ResponseEntity.ok(new UserResponse(user.getId(), user.getName(), user.getEmail()));
-    }
-
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponse>> listUsers() {
-        List<UserResponse> response = userDeviceService.listUsers().stream()
-            .map(user -> new UserResponse(user.getId(), user.getName(), user.getEmail()))
+    public ResponseEntity<List<UserResponse>> listUsers(
+        @RequestParam(required = false) Long managerId
+    ) {
+        List<UserResponse> response = (managerId == null
+            ? userDeviceService.listUsers()
+            : userDeviceService.listUsersByManager(managerId))
+            .stream()
+            .map(AuthService::toUserResponse)
             .toList();
         return ResponseEntity.ok(response);
     }
@@ -58,6 +57,14 @@ public class UserController {
     @GetMapping("/users/{userId}/devices")
     public ResponseEntity<List<DeviceResponse>> listUserDevices(@PathVariable Long userId) {
         List<DeviceResponse> response = userDeviceService.listUserDevices(userId).stream()
+            .map(device -> new DeviceResponse(device.getId(), device.getUser().getId(), device.getName(), device.getPhoneNumber()))
+            .toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/locations/{locationId}/devices")
+    public ResponseEntity<List<DeviceResponse>> listLocationDevices(@PathVariable Long locationId) {
+        List<DeviceResponse> response = userDeviceService.listDevicesByLocation(locationId).stream()
             .map(device -> new DeviceResponse(device.getId(), device.getUser().getId(), device.getName(), device.getPhoneNumber()))
             .toList();
         return ResponseEntity.ok(response);

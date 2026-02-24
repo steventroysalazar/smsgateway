@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
 
+const roleOptions = [
+  { label: 'Super Admin', value: 1 },
+  { label: 'Manager', value: 2 },
+  { label: 'User', value: 3 }
+]
+
 const formatReply = (reply) => {
   const date = Number(reply.date || 0)
   const dateLabel = date ? new Date(date).toLocaleString() : 'Unknown time'
@@ -17,6 +23,21 @@ export default function App() {
   const [replies, setReplies] = useState([])
   const [loading, setLoading] = useState(false)
 
+  const [registerForm, setRegisterForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    contactNumber: '',
+    address: '',
+    userRole: 3,
+    locationId: '',
+    managerId: ''
+  })
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
+  const [authStatus, setAuthStatus] = useState('Not logged in.')
+  const [session, setSession] = useState(null)
+
   const formattedReplies = useMemo(() => {
     if (!replies.length) {
       return 'No replies loaded yet.'
@@ -24,6 +45,47 @@ export default function App() {
 
     return replies.map(formatReply).join('\n')
   }, [replies])
+
+  const register = async () => {
+    try {
+      const payload = {
+        ...registerForm,
+        userRole: Number(registerForm.userRole),
+        locationId: registerForm.locationId ? Number(registerForm.locationId) : null,
+        managerId: registerForm.managerId ? Number(registerForm.managerId) : null
+      }
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed')
+      }
+      setAuthStatus(`Registered ${data.email} successfully.`)
+    } catch (error) {
+      setAuthStatus(`Register failed: ${error.message}`)
+    }
+  }
+
+  const login = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
+      setSession(data)
+      setAuthStatus(`Logged in as ${data.user.firstName} ${data.user.lastName} (role ${data.user.userRole}).`)
+    } catch (error) {
+      setAuthStatus(`Login failed: ${error.message}`)
+    }
+  }
 
   const sendMessage = async () => {
     const to = phone.trim()
@@ -114,57 +176,62 @@ export default function App() {
 
   return (
     <main className="container">
-      <h1>SMS Gateway UI</h1>
+      <h1>SMS Gateway Portal</h1>
+
+      <section className="card">
+        <h2>Authentication</h2>
+        <p className="status">{authStatus}</p>
+
+        <div className="grid-two">
+          <div>
+            <h3>Register</h3>
+            <input placeholder="Email" value={registerForm.email} onChange={(e) => setRegisterForm((p) => ({ ...p, email: e.target.value }))} />
+            <input placeholder="Password" type="password" value={registerForm.password} onChange={(e) => setRegisterForm((p) => ({ ...p, password: e.target.value }))} />
+            <input placeholder="First name" value={registerForm.firstName} onChange={(e) => setRegisterForm((p) => ({ ...p, firstName: e.target.value }))} />
+            <input placeholder="Last name" value={registerForm.lastName} onChange={(e) => setRegisterForm((p) => ({ ...p, lastName: e.target.value }))} />
+            <input placeholder="Contact number" value={registerForm.contactNumber} onChange={(e) => setRegisterForm((p) => ({ ...p, contactNumber: e.target.value }))} />
+            <input placeholder="Address" value={registerForm.address} onChange={(e) => setRegisterForm((p) => ({ ...p, address: e.target.value }))} />
+            <label>User role</label>
+            <select value={registerForm.userRole} onChange={(e) => setRegisterForm((p) => ({ ...p, userRole: Number(e.target.value) }))}>
+              {roleOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <input placeholder="Location ID (optional)" value={registerForm.locationId} onChange={(e) => setRegisterForm((p) => ({ ...p, locationId: e.target.value }))} />
+            <input placeholder="Manager ID (required for role 3)" value={registerForm.managerId} onChange={(e) => setRegisterForm((p) => ({ ...p, managerId: e.target.value }))} />
+            <button onClick={register}>Register</button>
+          </div>
+
+          <div>
+            <h3>Login</h3>
+            <input placeholder="Email" value={loginForm.email} onChange={(e) => setLoginForm((p) => ({ ...p, email: e.target.value }))} />
+            <input placeholder="Password" type="password" value={loginForm.password} onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))} />
+            <button onClick={login}>Login</button>
+            {session ? <pre className="replies">{JSON.stringify(session, null, 2)}</pre> : null}
+          </div>
+        </div>
+      </section>
 
       <section className="card">
         <h2>Send Message</h2>
-
-
         <label htmlFor="gatewayBaseUrl">Gateway Base URL (optional override)</label>
-        <input
-          id="gatewayBaseUrl"
-          placeholder="http://192.168.1.38:8082"
-          value={gatewayBaseUrl}
-          onChange={(event) => setGatewayBaseUrl(event.target.value)}
-        />
+        <input id="gatewayBaseUrl" placeholder="http://192.168.1.38:8082" value={gatewayBaseUrl} onChange={(event) => setGatewayBaseUrl(event.target.value)} />
 
         <label htmlFor="gatewayToken">Gateway Token (optional override)</label>
-        <input
-          id="gatewayToken"
-          placeholder="acbc45e4-c9c1-469e-b5bc-77290cc5c907"
-          value={gatewayToken}
-          onChange={(event) => setGatewayToken(event.target.value)}
-        />
+        <input id="gatewayToken" placeholder="token" value={gatewayToken} onChange={(event) => setGatewayToken(event.target.value)} />
 
         <label htmlFor="phone">Phone Number</label>
-        <input
-          id="phone"
-          placeholder="+639xxxxxxxxx"
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-        />
+        <input id="phone" placeholder="+639xxxxxxxxx" value={phone} onChange={(event) => setPhone(event.target.value)} />
 
         <label htmlFor="message">Message</label>
-        <textarea
-          id="message"
-          rows={4}
-          placeholder="Type your message"
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-        />
+        <textarea id="message" rows={4} placeholder="Type your message" value={message} onChange={(event) => setMessage(event.target.value)} />
 
-        <button disabled={loading} onClick={sendMessage}>
-          Send
-        </button>
+        <button disabled={loading} onClick={sendMessage}>Send</button>
       </section>
 
       <section className="card">
         <h2>Fetch Replies</h2>
-        <p>Fetches replies for the latest number you sent to.</p>
-        <button disabled={loading} onClick={fetchReplies}>
-          Manually Fetch Replies
-        </button>
-
+        <button disabled={loading} onClick={fetchReplies}>Manually Fetch Replies</button>
         <div className="status">{status}</div>
         <pre className="replies">{formattedReplies}</pre>
       </section>

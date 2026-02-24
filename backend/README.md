@@ -1,104 +1,123 @@
 # SMS Sender Backend (Spring Boot + React Vite)
 
-This backend now includes:
-- Gateway bridge APIs (`/api/messages/...`) to send/fetch SMS via Android gateway
-- SQL-backed user/device management (`/api/users...`)
-- Device configuration APIs (`/api/send-config`, `/api/inbound-messages`) for EV12-style command flow
-- React + Vite frontend (`frontend/`)
+## What is included
+- Android SMS gateway bridge endpoints
+- User registration/login (role-based: super admin, manager, user)
+- SQL-backed users, devices, locations
+- EV12 command generation and SMS send flow
+- React + Vite portal frontend
 
-## 1) Backend setup
-Edit `src/main/resources/application.yml`:
-
-- `gateway.base-url`: Android gateway URL (example `http://192.168.1.37:8082`)
-- `gateway.token`: token shown in Android gateway app
-- `gateway.default-limit`: max replies per fetch
-
-Database (SQL) is enabled using H2 file storage:
-- DB file: `backend/data/smsgateway.mv.db`
-- H2 console: `http://localhost:8090/h2-console`
-
-Run backend:
+## Run backend
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-## 2) Frontend setup (React + Vite)
+Backend: `http://localhost:8090`
+
+## Run frontend
 ```bash
 cd backend/frontend
 npm install
 npm run dev
 ```
 
-## API (new user/device flow)
+Frontend: `http://localhost:5173`
 
-### Create user
-`POST /api/users`
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com"
-}
+---
+
+## SQL database setup (how to connect)
+
+### Default local SQL (already configured)
+This project uses H2 file DB by default:
+- URL: `jdbc:h2:file:./data/smsgateway;MODE=PostgreSQL;AUTO_SERVER=TRUE`
+- Console: `http://localhost:8090/h2-console`
+
+Config is in `src/main/resources/application.yml`.
+
+### Connect to PostgreSQL (recommended for production)
+1. Add PostgreSQL driver to `pom.xml`:
+```xml
+<dependency>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+  <scope>runtime</scope>
+</dependency>
+```
+2. Update `application.yml`:
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smsgateway
+    username: your_user
+    password: your_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+```
+3. Restart backend.
+
+### Connect to MySQL (alternative)
+1. Add MySQL driver:
+```xml
+<dependency>
+  <groupId>com.mysql</groupId>
+  <artifactId>mysql-connector-j</artifactId>
+  <scope>runtime</scope>
+</dependency>
+```
+2. Use datasource config:
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/smsgateway?useSSL=false&allowPublicKeyRetrieval=true
+    username: your_user
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
 ```
 
-### List users
-`GET /api/users`
+---
 
-### Add device to user
-`POST /api/users/{userId}/devices`
-```json
-{
-  "name": "EV12 Wristband",
-  "phoneNumber": "+639973079369"
-}
-```
+## API docs
+See full endpoint examples in:
+- `backend/API_CALLS.md`
 
-### List user devices
-`GET /api/users/{userId}/devices`
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
 
-## API (EV12 config flow)
+### Locations
+- `POST /api/locations`
+- `GET /api/locations`
 
-### Send generated EV12 command SMS
-`POST /api/send-config`
+### Users/devices
+- `GET /api/users`
+- `GET /api/users?managerId={id}`
+- `POST /api/users/{userId}/devices`
+- `GET /api/users/{userId}/devices`
+- `GET /api/locations/{locationId}/devices`
 
-```json
-{
-  "deviceId": 1,
-  "contactNumber": "+639111111111",
-  "smsPassword": "123456",
-  "requestLocation": true,
-  "wifiEnabled": true,
-  "checkBattery": true,
-  "workingMode": "mode1",
-  "checkStatus": true
-}
-```
-
-The backend builds the semicolon-separated command preview, splits into 150-char SMS chunks, and sends each chunk to the device number via Android gateway.
-
-### Fetch inbound messages for UI polling
-`GET /api/inbound-messages?phone=+639973079369&since=1700000000&limit=100`
-
-- `since` supports seconds or milliseconds epoch values
-- Response is formatted for frontend usage with fields:
-  - `id`
-  - `from`
-  - `text`
-  - `receivedAt` (ISO timestamp)
-
-## Existing gateway bridge API
-
+### Messaging
 - `POST /api/messages/send`
 - `GET /api/messages/replies`
 - `GET /api/messages/health`
 - `GET /api/messages/debug/config`
 
-## Runtime override headers
+### EV12 flow
+- `POST /api/send-config`
+- `GET /api/inbound-messages`
 
-- `X-Gateway-Base-Url`: override target gateway URL
-- `Authorization`: raw API key (no `Bearer` prefix)
+## Roles
+- `1` super admin
+- `2` manager
+- `3` user
 
-## Troubleshooting
-
-- If direct phone call works but backend fails, call `GET /api/messages/debug/config` and verify resolved base URL/token.
-- If backend returns `Gateway send failed: HTTP 500, body: Error: 500`, the Android gateway rejected the request. Check SIM, SMS permission/default app status, token, and phone number format.
+Rules implemented:
+- Role 3 users must be assigned to a role 2 manager.
+- Manager can have users assigned via `managerId`.
+- Locations return user/device counts.
