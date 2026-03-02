@@ -3,8 +3,6 @@ package com.example.smsbackend.controller;
 import com.example.smsbackend.dto.CreateDeviceRequest;
 import com.example.smsbackend.dto.DeviceResponse;
 import com.example.smsbackend.dto.UserResponse;
-import com.example.smsbackend.entity.Device;
-import com.example.smsbackend.service.AuthService;
 import com.example.smsbackend.service.UserDeviceService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -31,12 +29,9 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> listUsers(
         @RequestParam(required = false) Long managerId
     ) {
-        List<UserResponse> response = (managerId == null
+        List<UserResponse> response = managerId == null
             ? userDeviceService.listUsers()
-            : userDeviceService.listUsersByManager(managerId))
-            .stream()
-            .map(AuthService::toUserResponse)
-            .toList();
+            : userDeviceService.listUsersByManager(managerId);
         return ResponseEntity.ok(response);
     }
 
@@ -45,28 +40,18 @@ public class UserController {
         @PathVariable Long userId,
         @Valid @RequestBody CreateDeviceRequest request
     ) {
-        Device device = userDeviceService.createDevice(userId, request);
-        return ResponseEntity.ok(new DeviceResponse(
-            device.getId(),
-            device.getUser().getId(),
-            device.getName(),
-            device.getPhoneNumber()
-        ));
+        return ResponseEntity.ok(userDeviceService.createDevice(userId, request));
     }
 
     @GetMapping("/users/{userId}/devices")
     public ResponseEntity<List<DeviceResponse>> listUserDevices(@PathVariable Long userId) {
-        List<DeviceResponse> response = userDeviceService.listUserDevices(userId).stream()
-            .map(device -> new DeviceResponse(device.getId(), device.getUser().getId(), device.getName(), device.getPhoneNumber()))
-            .toList();
+        List<DeviceResponse> response = userDeviceService.listUserDevices(userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/locations/{locationId}/devices")
     public ResponseEntity<List<DeviceResponse>> listLocationDevices(@PathVariable Long locationId) {
-        List<DeviceResponse> response = userDeviceService.listDevicesByLocation(locationId).stream()
-            .map(device -> new DeviceResponse(device.getId(), device.getUser().getId(), device.getName(), device.getPhoneNumber()))
-            .toList();
+        List<DeviceResponse> response = userDeviceService.listDevicesByLocation(locationId);
         return ResponseEntity.ok(response);
     }
 }

@@ -2,15 +2,15 @@ server:
   port: 8090
 
 spring:
-    datasource:
-        url: jdbc:postgresql://localhost:5432/smsgateway
-        driver-class-name: org.postgresql.Driver
-        username: ev12admin
-        password: Sample@12345
-    jpa:
-        hibernate:
-            ddl-auto: update
-        open-in-view: false
+  datasource:
+    url: jdbc:h2:file:./data/smsgateway;MODE=PostgreSQL;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
   h2:
     console:
       enabled: true

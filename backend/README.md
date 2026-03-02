@@ -87,6 +87,9 @@ spring:
 See full endpoint examples in:
 - `backend/API_CALLS.md`
 
+UI/UX flow reference for product and design:
+- `backend/UI_FLOW_PLAN.md`
+
 ### Auth
 - `POST /api/auth/register`
 - `POST /api/auth/login`
