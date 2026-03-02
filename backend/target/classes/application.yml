@@ -1,0 +1,18 @@
+server:
+  port: 8090
+
+spring:
+    datasource:
+        url: jdbc:postgresql://localhost:5432/smsgateway
+        driver-class-name: org.postgresql.Driver
+        username: ev12admin
+        password: Sample@12345
+    jpa:
+        hibernate:
+            ddl-auto: update
+        open-in-view: false
+
+gateway:
+  base-url: http://192.168.1.37:8082
+  token: "00f30633-4029-4cb7-b088-1f84e7251a53"
+  default-limit: 100
