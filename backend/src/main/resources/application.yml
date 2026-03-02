@@ -1,22 +1,22 @@
 server:
-  port: 8090
+    port: 8090
 
 spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/smsgateway;MODE=PostgreSQL;AUTO_SERVER=TRUE}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
-  h2:
-    console:
-      enabled: ${SPRING_H2_CONSOLE_ENABLED:true}
-      path: /h2-console
+    datasource:
+        url: ${SPRING_DATASOURCE_URL:postgresql://neondb_owner:npg_kdvM23qafLQn@ep-fancy-pond-a17fqnwa-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
+        driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+        username: ${SPRING_DATASOURCE_USERNAME:neondb_owner}
+        password: ${SPRING_DATASOURCE_PASSWORD:npg_kdvM23qafLQn}
+    jpa:
+        hibernate:
+            ddl-auto: update
+        open-in-view: false
+    h2:
+        console:
+            enabled: ${SPRING_H2_CONSOLE_ENABLED:false}
+            path: /h2-console
 
 gateway:
-  base-url: http://192.168.1.37:8082
-  token: "00f30633-4029-4cb7-b088-1f84e7251a53"
-  default-limit: 100
+    base-url: http://192.168.1.37:8082
+    token: "00f30633-4029-4cb7-b088-1f84e7251a53"
+    default-limit: 100
