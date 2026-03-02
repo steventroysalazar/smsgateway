@@ -36,28 +36,47 @@ This project uses H2 file DB by default:
 Config is in `src/main/resources/application.yml`.
 
 ### Connect to PostgreSQL (recommended for production)
-1. Add PostgreSQL driver to `pom.xml`:
-```xml
-<dependency>
-  <groupId>org.postgresql</groupId>
-  <artifactId>postgresql</artifactId>
-  <scope>runtime</scope>
-</dependency>
+PostgreSQL JDBC dependency is already included in `pom.xml`.
+
+Set these environment variables before starting backend:
+
+```bash
+export SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/smsgateway?sslmode=require'
+export SPRING_DATASOURCE_DRIVER_CLASS_NAME='org.postgresql.Driver'
+export SPRING_DATASOURCE_USERNAME='your_user'
+export SPRING_DATASOURCE_PASSWORD='your_password'
+export SPRING_H2_CONSOLE_ENABLED='false'
 ```
-2. Update `application.yml`:
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/smsgateway
-    username: your_user
-    password: your_password
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
+
+Then run:
+
+```bash
+cd backend
+mvn spring-boot:run
 ```
-3. Restart backend.
+
+Because this project now reads datasource config from env vars, it can run both:
+- local H2 (default, no env vars)
+- cloud PostgreSQL (set env vars)
+
+### Neon example (from Neon "Connect" panel)
+If Neon gives you a URL like:
+
+`postgresql://neondb_owner:PASSWORD@ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+
+convert it to Spring JDBC URL:
+
+`jdbc:postgresql://ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`
+
+Then set:
+
+```bash
+export SPRING_DATASOURCE_URL='jdbc:postgresql://ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+export SPRING_DATASOURCE_USERNAME='neondb_owner'
+export SPRING_DATASOURCE_PASSWORD='your_neon_password'
+export SPRING_DATASOURCE_DRIVER_CLASS_NAME='org.postgresql.Driver'
+export SPRING_H2_CONSOLE_ENABLED='false'
+```
 
 ### Connect to MySQL (alternative)
 1. Add MySQL driver:
