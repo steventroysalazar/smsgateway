@@ -196,13 +196,16 @@ Rule:
 
 ## 4.6 Device Settings / Command Builder
 
-Goal: Build one semicolon-separated SMS payload, preview it, then send.
+Goal: Build one comma-separated SMS payload, preview it, then send.
 
 ### Sections (recommended)
 1. Core setup
+   - Device IMEI (read-only reference)
    - Contact Number (`A1,1,1,<number>`)
    - SMS Password (`P<password>`)
+   - SMS White List (`sms1`/`sms0`)
    - Request location toggle (`loc`)
+   - Optional GPS/LBS request (`loc,gps`, `LBS1`)
 
 2. Connectivity
    - Wi-Fi (`Wifi0/1`)
@@ -216,15 +219,21 @@ Goal: Build one semicolon-separated SMS payload, preview it, then send.
    - Prefix (`prefix0/1,<name>`)
 
 4. Alarms
+   - SOS action (`SOS<mode>,<time>`)
+   - SOS ring/talk (`soscall<ring>,<talk>`)
    - Battery check (`battery`)
    - Fall detection (`fl0/1,sensitivity,call`)
+   - Motion alarm (`mo0/1,static,duration,call`)
    - No motion (`nmo0/1,time,call`)
+   - Over-speed (`Speed0/1,<limit>`)
+   - Geo-fence (`Geo1,<on/off>,<leave/enter>,<radius>`)
 
 5. Working mode
    - mode1..mode6 with conditional interval fields
 
 6. Continuous locate
    - `CL<interval>,<duration>`
+   - Time zone (`tz+08:00` style)
 
 7. Diagnostics
    - Status (`status`)
@@ -232,6 +241,7 @@ Goal: Build one semicolon-separated SMS payload, preview it, then send.
 ### UX requirements
 - Real-time **command preview**.
 - Character count + note that payload will be split by backend into 150-char SMS chunks.
+- Commands are concatenated by comma in a single payload string.
 - Final send confirmation with device name + phone number.
 
 ---
@@ -351,4 +361,3 @@ Use these backend routes (see also `API_CALLS.md`):
 2. Add saved presets per device type.
 3. Add timeline view for outbound command and inbound reply pairs.
 4. Add explicit permission matrix page for role capabilities.
-

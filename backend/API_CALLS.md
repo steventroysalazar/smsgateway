@@ -104,7 +104,7 @@ Includes:
 
 Use request body fields from your EV12 form. Backend will:
 1. Build command segments.
-2. Join with `;` preview.
+2. Join with `,` preview.
 3. Split to 150-char SMS chunks.
 4. Send each chunk to the selected device number.
 
