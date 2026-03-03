@@ -63,6 +63,7 @@ export SPRING_DATASOURCE_DRIVER_CLASS_NAME='org.postgresql.Driver'
 export SPRING_DATASOURCE_USERNAME='your_user'
 export SPRING_DATASOURCE_PASSWORD='your_password'
 export SPRING_H2_CONSOLE_ENABLED='false'
+export WEBHOOK_EV12_TOKEN='replace_me'
 ```
 
 Then run:
@@ -93,6 +94,7 @@ export SPRING_DATASOURCE_USERNAME='neondb_owner'
 export SPRING_DATASOURCE_PASSWORD='your_neon_password'
 export SPRING_DATASOURCE_DRIVER_CLASS_NAME='org.postgresql.Driver'
 export SPRING_H2_CONSOLE_ENABLED='false'
+export WEBHOOK_EV12_TOKEN='replace_me'
 ```
 
 ### Connect to MySQL (alternative)
@@ -150,6 +152,8 @@ UI/UX flow reference for product and design:
 ### EV12 flow
 - `POST /api/send-config`
 - `GET /api/inbound-messages`
+- `POST /api/webhooks/ev12`
+- `GET /api/webhooks/ev12/events`
 
 ## Roles
 - `1` super admin
@@ -160,3 +164,15 @@ Rules implemented:
 - Role 3 users must be assigned to a role 2 manager.
 - Manager can have users assigned via `managerId`.
 - Locations return user/device counts.
+
+### EV12 webhook (board -> backend)
+Devices can push raw board telemetry/config snapshots directly to backend:
+
+- Endpoint: `POST /api/webhooks/ev12`
+- Header: `X-Webhook-Token: <WEBHOOK_EV12_TOKEN>` (optional unless token configured)
+- Body: raw JSON payload from EV12 board.
+
+You can inspect recent ingested events using:
+
+- `GET /api/webhooks/ev12/events?limit=20`
+

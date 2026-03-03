@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -33,6 +34,15 @@ public class ApiExceptionHandler {
             "details", e.getBindingResult().getFieldErrors().stream()
                 .map(err -> Map.of("field", err.getField(), "message", err.getDefaultMessage()))
                 .toList()
+        ));
+    }
+
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(Map.of(
+            "success", false,
+            "error", e.getReason() != null ? e.getReason() : "Request failed"
         ));
     }
 

@@ -110,3 +110,27 @@ Use request body fields from your EV12 form. Backend will:
 
 ### Poll inbound messages
 `GET /inbound-messages?phone=+639973079369&since=1700000000&limit=100`
+
+## EV12 device webhook
+
+### Ingest EV12 board payload
+`POST /webhooks/ev12`
+
+Headers:
+- `Content-Type: application/json`
+- `X-Webhook-Token: <token>` (required only when `WEBHOOK_EV12_TOKEN` is configured)
+
+Body: send the raw board JSON payload exactly as received.
+
+### Get recent EV12 webhook events
+`GET /webhooks/ev12/events?limit=20`
+
+Headers:
+- `X-Webhook-Token: <token>` (required only when `WEBHOOK_EV12_TOKEN` is configured)
+
+Response includes:
+- extracted `deviceId` / `imei`
+- battery level and signal quality (when present)
+- parsed device timestamp and server receive timestamp
+- raw payload JSON
+

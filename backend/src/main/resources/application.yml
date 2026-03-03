@@ -20,3 +20,6 @@ gateway:
   base-url: http://192.168.1.37:8082
   token: "00f30633-4029-4cb7-b088-1f84e7251a53"
   default-limit: 100
+
+webhook:
+  ev12-token: ${WEBHOOK_EV12_TOKEN:}
