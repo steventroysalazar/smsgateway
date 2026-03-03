@@ -17,7 +17,7 @@ public class Ev12WebhookEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 64)
+    @Column(length = 64)
     private String deviceId;
 
     @Column(length = 64)

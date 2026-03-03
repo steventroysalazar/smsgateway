@@ -2,7 +2,6 @@ package com.example.smsbackend.controller;
 
 import com.example.smsbackend.dto.Ev12WebhookEventResponse;
 import com.example.smsbackend.service.Ev12WebhookService;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -27,10 +26,10 @@ public class Ev12WebhookController {
 
     @PostMapping("/ev12")
     public ResponseEntity<Map<String, Object>> ingest(
-        @RequestBody JsonNode payload,
+        @RequestBody String rawPayload,
         @RequestHeader(value = "X-Webhook-Token", required = false) String webhookToken
     ) {
-        Ev12WebhookEventResponse saved = ev12WebhookService.ingest(payload, webhookToken);
+        Ev12WebhookEventResponse saved = ev12WebhookService.ingest(rawPayload, webhookToken);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
             "success", true,
             "event", saved

@@ -129,8 +129,7 @@ Headers:
 - `X-Webhook-Token: <token>` (required only when `WEBHOOK_EV12_TOKEN` is configured)
 
 Response includes:
-- extracted `deviceId` / `imei`
-- battery level and signal quality (when present)
-- parsed device timestamp and server receive timestamp
-- raw payload JSON
+- event id
+- server receive timestamp
+- raw payload JSON (as posted)
 

@@ -166,7 +166,7 @@ Rules implemented:
 - Locations return user/device counts.
 
 ### EV12 webhook (board -> backend)
-Devices can push raw board telemetry/config snapshots directly to backend:
+Devices can push raw board telemetry/config snapshots directly to backend for monitoring first:
 
 - Endpoint: `POST /api/webhooks/ev12`
 - Header: `X-Webhook-Token: <WEBHOOK_EV12_TOKEN>` (optional unless token configured)
