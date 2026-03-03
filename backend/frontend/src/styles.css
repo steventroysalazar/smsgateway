@@ -32,6 +32,18 @@ label {
   margin-top: 0.75rem;
 }
 
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
 input,
 textarea {
   width: 100%;
@@ -61,6 +73,13 @@ button:disabled {
   margin-top: 1rem;
   color: #0b57d0;
   font-weight: 600;
+}
+
+.hint {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  color: #4b5563;
+  font-size: 0.9rem;
 }
 
 .grid-two {

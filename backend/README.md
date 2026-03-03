@@ -15,6 +15,23 @@ mvn spring-boot:run
 
 Backend: `http://localhost:8090`
 
+### Quick env setup (recommended)
+Copy the template and fill in your real values:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Then load it before running Spring Boot:
+
+```bash
+set -a
+source .env
+set +a
+mvn spring-boot:run
+```
+
 ## Run frontend
 ```bash
 cd backend/frontend
